@@ -16,5 +16,5 @@ combined$year <- combined$year %>% replace(combined$year == 1, 2019)
 combined$year <- combined$year %>% replace(combined$year == 2, 2021)
 combined$year <- combined$year %>% replace(combined$year == 3, 2022)
 
-col_numbers <- c(2, seq(3,204, by = 12))
+col_numbers <- c(2, seq(3,604, by = 12))
 combined<-combined[,col_numbers]
