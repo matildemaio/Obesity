@@ -29,9 +29,7 @@ library(dplyr)
 library(tidyr)
 
 
-income2019 <- income2019 %>% rename(income = X2019)
-income2021 <- income2021 %>% rename(income = X2021)
-income2022 <- income2022 %>% rename(income = X2022)
+
 income2019 <- income2019 %>% mutate(year = 2019)
 income2021 <- income2021 %>% mutate(year = 2021)
 income2022 <- income2022 %>% mutate(year = 2022)
@@ -46,3 +44,14 @@ average_income <- combined_income %>%
   
   #Sort form highest to lowest
   arrange(desc(avg_income))
+
+ggplot(average_income_states, aes(x = GeoName, y = avg_income / 1e6)) +
+  geom_point() +
+  labs(
+    title = "Average Income by State (in Millions)",
+    x = "State",
+    y = "Average Income (Millions USD)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
