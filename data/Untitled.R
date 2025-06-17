@@ -45,6 +45,44 @@ average_income <- combined_income %>%
   #Sort form highest to lowest
   arrange(desc(avg_income))
 
+library(tidyverse)
+
+# Step 1: Extract for each year
+edu2019 <- education2019 %>%
+  filter(str_detect(`Label..Grouping.`, "Bachelor's degree or higher")) %>%
+  mutate(year = 2019)
+
+edu2021 <- education2021 %>%
+  filter(str_detect(`Label..Grouping.`, "Bachelor's degree or higher")) %>%
+  mutate(year = 2021)
+
+edu2022 <- education2022 %>%
+  filter(str_detect(`Label..Grouping.`, "Bachelor's degree or higher")) %>%
+  mutate(year = 2022)
+
+# Step 2: Combine
+education_combined <- bind_rows(edu2019, edu2021, edu2022)
+
+# Step 3: Pivot longer
+education_long <- education_combined %>%
+  select(-`Label..Grouping.`, -`...1`) %>%
+  pivot_longer(-year, names_to = "GeoName", values_to = "Count")
+
+# Step 4: Clean & average
+education_long$Count <- as.numeric(gsub(",", "", education_long$Count))
+
+average_education <- education_long %>%
+  filter(!GeoName %in% c("United States", "2025."), !is.na(Count)) %>%
+  group_by(GeoName) %>%
+  summarise(avg_education = mean(Count, na.rm = TRUE)) %>%
+  arrange(desc(avg_education))
+average_education_clean <- average_education %>%
+  filter(str_detect(GeoName, "\\.\\.Total\\.\\.Estimate")) %>%
+  mutate(
+    GeoName = str_replace(GeoName, "\\.\\.Total\\.\\.Estimate", "")
+  )
+View(average_education_clean)
+
 ggplot(average_income_states, aes(x = GeoName, y = avg_income / 1e6)) +
   geom_point() +
   labs(
@@ -54,4 +92,22 @@ ggplot(average_income_states, aes(x = GeoName, y = avg_income / 1e6)) +
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+library(ggplot2)
+
+ggplot(average_education_clean, aes(x = reorder(GeoName, -avg_education), y = avg_education)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(
+    title = "Average Number with Bachelor's Degree or Higher by State",
+    x = "State",
+    y = "Average Education Count"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+
+
 
