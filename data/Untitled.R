@@ -83,7 +83,7 @@ average_education_clean <- average_education %>%
   )
 View(average_education_clean)
 
-ggplot(average_income_states, aes(x = GeoName, y = avg_income / 1e6)) +
+ggplot(average_income_states, aes(x = reorder(GeoName, -avg_income), y = avg_income / 1e6)) +
   geom_point() +
   labs(
     title = "Average Income by State (in Millions)",
@@ -92,6 +92,7 @@ ggplot(average_income_states, aes(x = GeoName, y = avg_income / 1e6)) +
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
 
 
 library(ggplot2)
