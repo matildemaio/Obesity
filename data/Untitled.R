@@ -1,4 +1,3 @@
-#Loading packages 
 install.packages("tidyverse")
 library(tidyverse)
 
@@ -30,9 +29,27 @@ library(tidyr)
 
 
 
-income2019 <- income2019 %>% mutate(year = 2019)
-income2021 <- income2021 %>% mutate(year = 2021)
-income2022 <- income2022 %>% mutate(year = 2022)
+# Rename the income columns and add year
+income2019 <- income2019 %>%
+  mutate(year = 2019)
+
+income2021 <- income2021 %>%
+  mutate(year = 2021)
+
+income2022 <- income2022 %>%
+  mutate(year = 2022)
+combined_income <- bind_rows(income2019, income2021, income2022)
+
+average_income <- combined_income %>%
+  filter(!GeoName %in% c("United States", "2025.")) %>%
+  group_by(GeoName) %>%
+  summarise(avg_income = mean(income, na.rm = TRUE)) %>%
+  arrange(desc(avg_income))
+
+
+# Now bind rows
+combined_income <- bind_rows(income2019, income2021, income2022)
+
 
 #Merge income data
 combined_income <- bind_rows(income2019, income2021, income2022)
@@ -83,7 +100,7 @@ average_education_clean <- average_education %>%
   )
 View(average_education_clean)
 
-ggplot(average_income_states, aes(x = reorder(GeoName, -avg_income), y = avg_income / 1e6)) +
+ggplot(average_income, aes(x = reorder(GeoName, -avg_income), y = avg_income / 1e6)) +
   geom_point() +
   labs(
     title = "Average Income by State (in Millions)",
@@ -152,3 +169,57 @@ ggplot(map_income, aes(x = long, y = lat, group = group, fill = avg_income)) +
   ) +
   scale_fill_viridis_c(option = "cividis", direction = -1) +
   theme_void()
+
+# Filter for California and Vermont
+income_subset <- average_income %>%
+  filter(GeoName %in% c("California", "Vermont")) %>%
+  mutate(Type = "Income", Value = avg_income / 1e6) %>%
+  select(GeoName, Type, Value)
+
+education_subset <- average_education_clean %>%
+  filter(GeoName %in% c("California", "Vermont")) %>%
+  mutate(Type = "Education", Value = avg_education / 1e6) %>%
+  select(GeoName, Type, Value)
+
+# Combine both
+combined_plot_data <- bind_rows(income_subset, education_subset)
+
+ggplot(combined_plot_data, aes(x = GeoName, y = Value, fill = Type)) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "Average Income and Education for California and Vermont",
+    x = "State",
+    y = "Millions (USD / People)",
+    fill = "Metric"
+  ) +
+  theme_minimal()
+
+# Step 1: Filter and summarize income
+income_ca <- combined_income %>%
+  filter(GeoName == "California") %>%
+  group_by(year) %>%
+  summarise(Value = mean(income, na.rm = TRUE)) %>%
+  mutate(Type = "Income")
+
+# Step 2: Filter and summarize education (corrected)
+education_ca <- education_long %>%
+  filter(GeoName == "California..Total..Estimate") %>%
+  group_by(year) %>%
+  summarise(Value = mean(Count, na.rm = TRUE)) %>%
+  mutate(Type = "Education")
+
+# Step 3: Combine and plot
+line_data <- bind_rows(income_ca, education_ca)
+
+ggplot(line_data, aes(x = year, y = Value, color = Type)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 2) +
+  geom_vline(xintercept = 2020, linetype = "dashed", color = "red") +
+  labs(
+    title = "Income and Education Trend in California",
+    x = "Year",
+    y = "Value (USD / People)",
+    color = "Metric"
+  ) +
+  scale_x_continuous(breaks = c(2019, 2020, 2021, 2022)) +
+  theme_minimal()
