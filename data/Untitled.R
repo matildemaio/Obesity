@@ -108,7 +108,47 @@ ggplot(average_education_clean, aes(x = reorder(GeoName, -avg_education), y = av
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
+library(ggplot2)
+library(dplyr)
+library(maps)
+# Get map data for U.S. states
+us_states <- map_data("state")
+
+# Prepare education data: lowercase state names to match map data
+education_map <- average_education_clean %>%
+  mutate(region = tolower(GeoName))
+map_edu <- us_states %>%
+  left_join(education_map, by = "region")
+ggplot(map_edu, aes(x = long, y = lat, group = group, fill = avg_education)) +
+  geom_polygon(color = "white") +
+  coord_fixed(1.3) +
+  labs(
+    title = "Average Bachelor's Degree or Higher by State",
+    fill = "Avg. Education"
+  ) +
+  scale_fill_viridis_c(option = "plasma", direction = -1) +
+  theme_void()
+
+unique(average_education_clean$GeoName)
 
 
 
 
+average_income_states <- average_income %>%
+  filter(GeoName != "United States") %>%
+  mutate(region = tolower(GeoName))
+library(ggplot2)
+library(maps)
+
+us_states <- map_data("state")
+map_income <- us_states %>%
+  left_join(average_income_states, by = "region")
+ggplot(map_income, aes(x = long, y = lat, group = group, fill = avg_income)) +
+  geom_polygon(color = "white") +
+  coord_fixed(1.3) +
+  labs(
+    title = "Average Income by State",
+    fill = "Avg. Income"
+  ) +
+  scale_fill_viridis_c(option = "cividis", direction = -1) +
+  theme_void()
