@@ -152,3 +152,65 @@ ggplot(map_income, aes(x = long, y = lat, group = group, fill = avg_income)) +
   ) +
   scale_fill_viridis_c(option = "cividis", direction = -1) +
   theme_void()
+
+
+
+
+# Step 1: Get top and bottom 10 income states
+top10_income <- average_income %>%
+  filter(GeoName != "United States") %>%
+  arrange(desc(avg_income)) %>%
+  slice(1:10)
+
+bottom10_income <- average_income %>%
+  filter(GeoName != "United States") %>%
+  arrange(avg_income) %>%
+  slice(1:10)
+
+
+library(tidyverse)
+
+#Do not forget to specify on the report that we chose 10 states with highest income and 10 states with lowest income
+
+
+# Step 1: Get top and bottom 10 income states
+top10_income <- average_income %>%
+  filter(GeoName != "United States") %>%
+  arrange(desc(avg_income)) %>%
+  slice(1:10)
+
+bottom10_income <- average_income %>%
+  filter(GeoName != "United States") %>%
+  arrange(avg_income) %>%
+  slice(1:10)
+
+# Step 2: Combine them
+selected_states <- bind_rows(top10_income, bottom10_income)
+
+# Step 3: Join with education data
+comparison_data <- selected_states %>%
+  left_join(average_education_clean, by = "GeoName") %>%
+  select(GeoName, avg_income, avg_education) %>%
+  mutate(
+    avg_income = avg_income / 1e6,
+    avg_education = avg_education / 1e6
+  )
+
+# Step 4: Convert to long format for boxplot
+comparison_long <- comparison_data %>%
+  pivot_longer(cols = c(avg_income, avg_education),
+               names_to = "Metric",
+               values_to = "Value") %>%
+  mutate(Metric = recode(Metric,
+                         avg_income = "Income",
+                         avg_education = "Education"))
+
+# Step 5: Plot box plot
+ggplot(comparison_long, aes(x = Metric, y = Value, fill = Metric)) +
+  geom_boxplot() +
+  labs(
+    title = "Distribution of Income and Education\nTop & Bottom 10 States by Income",
+    x = "Metric",
+    y = "Millions (USD / People)"
+  ) +
+  theme_minimal()
