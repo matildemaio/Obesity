@@ -223,3 +223,97 @@ ggplot(line_data, aes(x = year, y = Value, color = Type)) +
   ) +
   scale_x_continuous(breaks = c(2019, 2020, 2021, 2022)) +
   theme_minimal()
+
+
+
+
+library(tidyverse)
+
+# Filter top 10 highest and lowest income states (excluding United States)
+top10_income <- average_income %>%
+  filter(GeoName != "United States") %>%
+  arrange(desc(avg_income)) %>%
+  slice(1:10)
+
+bottom10_income <- average_income %>%
+  filter(GeoName != "United States") %>%
+  arrange(avg_income) %>%
+  slice(1:10)
+
+# Combine both sets of states
+selected_states <- bind_rows(top10_income, bottom10_income)
+
+# Join with education data
+comparison_data <- selected_states %>%
+  left_join(average_education_clean, by = "GeoName") %>%
+  select(GeoName, avg_income, avg_education) %>%
+  mutate(
+    avg_income = avg_income / 1e6,
+    avg_education = avg_education / 1e6
+  )
+
+# Reshape for plotting
+comparison_long <- comparison_data %>%
+  pivot_longer(cols = c(avg_income, avg_education), 
+               names_to = "Metric", 
+               values_to = "Value") %>%
+  mutate(Metric = recode(Metric, 
+                         avg_income = "Income", 
+                         avg_education = "Education"))
+
+# Plot
+ggplot(comparison_long, aes(x = reorder(GeoName, -Value), y = Value, fill = Metric)) +
+  geom_col(position = "dodge") +
+  labs(
+    title = "Top & Bottom 10 States: Income vs Education",
+    x = "State",
+    y = "Millions (USD / People)",
+    fill = "Metric"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+library(tidyverse)
+
+# Step 1: Get top and bottom 10 income states
+top10_income <- average_income %>%
+  filter(GeoName != "United States") %>%
+  arrange(desc(avg_income)) %>%
+  slice(1:10)
+
+bottom10_income <- average_income %>%
+  filter(GeoName != "United States") %>%
+  arrange(avg_income) %>%
+  slice(1:10)
+
+# Step 2: Combine them
+selected_states <- bind_rows(top10_income, bottom10_income)
+
+# Step 3: Join with education data
+comparison_data <- selected_states %>%
+  left_join(average_education_clean, by = "GeoName") %>%
+  select(GeoName, avg_income, avg_education) %>%
+  mutate(
+    avg_income = avg_income / 1e6,
+    avg_education = avg_education / 1e6
+  )
+
+# Step 4: Convert to long format for boxplot
+comparison_long <- comparison_data %>%
+  pivot_longer(cols = c(avg_income, avg_education),
+               names_to = "Metric",
+               values_to = "Value") %>%
+  mutate(Metric = recode(Metric,
+                         avg_income = "Income",
+                         avg_education = "Education"))
+
+# Step 5: Plot box plot
+ggplot(comparison_long, aes(x = Metric, y = Value, fill = Metric)) +
+  geom_boxplot() +
+  labs(
+    title = "Distribution of Income and Education\nTop & Bottom 10 States by Income",
+    x = "Metric",
+    y = "Millions (USD / People)"
+  ) +
+  theme_minimal()
