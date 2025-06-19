@@ -10,30 +10,66 @@ library(dplyr)
 library(purrr)
 
 
-
-###Data cleaning###
-
-#Create list of education data
-df_list <- list(education2019, education2021, education2022)
-
-#Merge education data  
-combined<-imap_dfr(df_list, ~mutate(.x, year=.y))
-
-#Replace year codes with actual years 
-combined$year <- combined$year %>% replace(combined$year == 1, 2019)
-combined$year <- combined$year %>% replace(combined$year == 2, 2021)
-combined$year <- combined$year %>% replace(combined$year == 3, 2022)
-
-
-#Selection of columns with individuals with 18 to 24 year
-col_numbers <- c(2, seq(3,604, by = 12))
-combined<-combined[,col_numbers]
-
-
 library(dplyr)
 library(tidyr)
 
-# Rename the income columns and add year
+
+###Data cleaning####
+
+##Education data
+
+#Selection of columns with total estimate for each year
+
+col_numbers<- c(2,seq(3,604, by=12))
+education2019_clean<-education2019[,col_numbers]
+
+col_numbers<- c(2,seq(3,604, by=12))
+education2021_clean<-education2021[,col_numbers]
+
+col_numbers<- c(2,seq(3,604, by=12))
+education2022_clean<-education2022[,col_numbers]
+
+# Add column year
+
+education2019_clean <- education2019_clean %>%
+  mutate(year = 2019)
+
+education2021_clean <- education2021_clean %>%
+  mutate(year = 2021)
+
+education2022_clean <- education2022_clean %>%
+  mutate(year = 2022)
+
+
+#Selection of Population 18-24 years with bachelor's degree or higher for each year
+
+Bachelor_2019 <- education2019_clean[6, ]
+
+Bachelor_2021 <- education2021_clean[6, ]
+
+Bachelor_2022 <- education2022_clean[6, ]
+
+
+#Merge education data
+
+merged_education <- bind_rows(Bachelor_2019, Bachelor_2021, Bachelor_2022)
+
+#Rename column
+
+merged_education <- merged_education %>%
+  rename(Variable = `Label..Grouping.`)
+
+#Match the structure of the income data for consistent analysis
+
+merged_education <- merged_education %>%
+  select(-Variable, -1) %>%
+  pivot_longer(-year, names_to = "GeoName", values_to = "education")%>%
+  mutate(GeoName = gsub("\\.\\.Total\\.\\.Estimate", "", GeoName))
+
+##Income data
+
+#Add column year
+
 income2019 <- income2019 %>%
   mutate(year = 2019)
 
@@ -44,67 +80,36 @@ income2022 <- income2022 %>%
   mutate(year = 2022)
 
 #Merge income data
-combined_income <- bind_rows(income2019, income2021, income2022)
+
+merged_income <- bind_rows(income2019, income2021, income2022)
+
+#Remove rows not relevant to the analysis
+
+merged_income <- merged_income %>%
+  filter(!is.na(as.numeric(GeoFips)))%>%
+  filter(GeoName != "United States")
 
 
 ###Creation of new variables###
 
-#Create new variable
-average_income <- combined_income %>%
-  filter(!GeoName %in% c("United States", "2025.")) %>%
-  group_by(GeoName) %>%
-  summarise(avg_income = mean(income, na.rm = TRUE)) %>%
-  arrange(desc(avg_income))
-
-
-
-
-
 #Calculation of average income per state
-average_income <- combined_income %>%
+
+average_income <- merged_income %>%
   group_by(GeoName) %>%
-  summarise(avg_income = mean(income, na.rm = TRUE)) %>%
-  
-  #Sort form highest to lowest
+  summarise(avg_income = mean(income, na.rm = TRUE))%>%
   arrange(desc(avg_income))
-library(tidyverse)
+  
+#Calculation of average education per state and remove commas and convert to numeric
 
-# Step 1: Extract for each year
-edu2019 <- education2019 %>%
-  filter(str_detect(Label..Grouping., "Bachelor's degree or higher")) %>%
-  mutate(year = 2019)
-
-edu2021 <- education2021 %>%
-  filter(str_detect(Label..Grouping., "Bachelor's degree or higher")) %>%
-  mutate(year = 2021)
-
-edu2022 <- education2022 %>%
-  filter(str_detect(Label..Grouping., "Bachelor's degree or higher")) %>%
-  mutate(year = 2022)
-
-# Step 2: Combine
-education_combined <- bind_rows(edu2019, edu2021, edu2022)
-
-# Step 3: Pivot longer
-education_long <- education_combined %>%
-  select(-Label..Grouping., -...1) %>%
-  pivot_longer(-year, names_to = "GeoName", values_to = "Count")
-
-# Step 4: Clean & average
-education_long$Count <- as.numeric(gsub(",", "", education_long$Count))
-
-average_education <- education_long %>%
-  filter(!GeoName %in% c("United States", "2025."), !is.na(Count)) %>%
+average_education <- merged_education %>%
+  mutate(education = as.numeric(gsub(",", "", education))) %>%
   group_by(GeoName) %>%
-  summarise(avg_education = mean(Count, na.rm = TRUE)) %>%
+  summarise(avg_education = mean(education, na.rm = TRUE))%>%
   arrange(desc(avg_education))
-average_education_clean <- average_education %>%
-  filter(str_detect(GeoName, "\\.\\.Total\\.\\.Estimate")) %>%
-  mutate(
-    GeoName = str_replace(GeoName, "\\.\\.Total\\.\\.Estimate", "")
-  )
-View(average_education_clean)
 
+
+
+#I still need to do this part
 ggplot(average_income, aes(x = reorder(GeoName, -avg_income), y = avg_income / 1e6)) +
   geom_point() +
   labs(
