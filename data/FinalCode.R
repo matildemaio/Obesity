@@ -1,3 +1,8 @@
+
+#Correction of name
+education2021 = educayion2021
+
+
 install.packages("tidyverse")
 library(tidyverse)
 
@@ -5,8 +10,8 @@ library(dplyr)
 library(purrr)
 
 
-#Correction of name
-education2021 = educayion2021
+
+###Data cleaning###
 
 #Create list of education data
 df_list <- list(education2019, education2021, education2022)
@@ -20,14 +25,13 @@ combined$year <- combined$year %>% replace(combined$year == 2, 2021)
 combined$year <- combined$year %>% replace(combined$year == 3, 2022)
 
 
-#Selection of columns
+#Selection of columns with individuals with 18 to 24 year
 col_numbers <- c(2, seq(3,604, by = 12))
 combined<-combined[,col_numbers]
 
+
 library(dplyr)
 library(tidyr)
-
-
 
 # Rename the income columns and add year
 income2019 <- income2019 %>%
@@ -38,8 +42,14 @@ income2021 <- income2021 %>%
 
 income2022 <- income2022 %>%
   mutate(year = 2022)
+
+#Merge income data
 combined_income <- bind_rows(income2019, income2021, income2022)
 
+
+###Creation of new variables###
+
+#Create new variable
 average_income <- combined_income %>%
   filter(!GeoName %in% c("United States", "2025.")) %>%
   group_by(GeoName) %>%
@@ -47,12 +57,8 @@ average_income <- combined_income %>%
   arrange(desc(avg_income))
 
 
-# Now bind rows
-combined_income <- bind_rows(income2019, income2021, income2022)
 
 
-#Merge income data
-combined_income <- bind_rows(income2019, income2021, income2022)
 
 #Calculation of average income per state
 average_income <- combined_income %>%
