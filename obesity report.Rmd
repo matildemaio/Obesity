@@ -1,0 +1,19 @@
+---
+title: "obesity report"
+output: html_document
+---
+
+# Title Page 
+
+Obesity 26-05-2025 Group: Tutorial 4 Tutorial lecturer: Chantal Students: Renata Mutesah (2797482), Jada van Heyningen (2801118), Matilde Maio (2861974), Eren Murtezaoglu (2819813)
+
+## Part 1: Identifying Our Social Problem 
+
+Obesity is a growing social problem with significant public health, economic, and societal implications. With many factors impacting the rate of obesity. Some including poor diets, mental health issues, low income, and lack of education. In the united states of America, more than 100 millions adults (CDC, 2024) have obesity, causing the USA to rank in the top 10 (Ranking (% obesity by country), n.d.) countries with the highest obesity percentage. It contributes to rising rates of chronic diseases like diabetes, heart disease, and certain cancers, placing immense pressure on healthcare systems. In many communities, limited access to healthy food and safe recreational spaces further deepens health inequalities.\
+Exploring the correlation between education, income, and obesity is highly relevant because both factors significantly influence health behaviors and access to resources. Individuals with lower levels of education may have limited knowledge about nutrition and the long-term consequences of poor dietary habits. Similarly, those with lower income often face barriers such as food insecurity, reliance on cheap, calorie-dense foods, and reduced access to recreational facilities or healthcare. Especially since we live in a world where eating healthy costs twice as much as eating junk food (Barraclough, 2025) It is assumed that these socioeconomic disadvantages contribute to higher obesity rates in disadvantaged populations- we were interested to explore these rates, specifically in American states.
+
+#Part 2: Data Sourcing (may need to edit this later- Ask tutroial teacher: do i just copy and paste the whole link or do i need to somehow download the data?) income_2019 \<- read_csv("path/to/income_2019.csv") income_2021 \<- read_csv("path/to/income_2021.csv") income_2022 \<- read_csv("path/to/income_2022.csv")
+
+```{r}
+
+```
