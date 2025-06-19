@@ -169,6 +169,9 @@ ggplot(map_income, aes(x = long, y = lat, group = group, fill = avg_income)) +
   scale_fill_viridis_c(option = "cividis", direction = -1) +
   theme_void()
 
+
+
+#NEED TO REMOVE THIS 
 # Filter for California and Vermont
 income_subset <- average_income %>%
   filter(GeoName %in% c("California", "Vermont")) %>%
