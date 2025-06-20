@@ -1,4 +1,3 @@
-
 #Correction of name
 education2021 = educayion2021
 
@@ -10,9 +9,6 @@ library(tidyverse)
 
 library(dplyr)
 library(purrr)
-
-
-library(dplyr)
 library(tidyr)
 
 
@@ -85,20 +81,24 @@ merged_education_clean <- merged_education_clean %>%
 
 ##Income data
 
-#Add column year
+#Add column year and rename column
 
-income2019 <- income2019 %>%
-  mutate(year = 2019)
+income2019_clean <- income2019 %>%
+  mutate(year = 2019)%>%
+  rename(income = X2019)
 
-income2021 <- income2021 %>%
-  mutate(year = 2021)
+income2021_clean <- income2021 %>%
+  mutate(year = 2021)%>%
+  rename(income = X2021)
 
-income2022 <- income2022 %>%
-  mutate(year = 2022)
+income2022_clean <- income2022 %>%
+  mutate(year = 2022)%>%
+  rename(income = X2022)
+
 
 #Merge income data
 
-merged_income <- bind_rows(income2019, income2021, income2022)
+merged_income <- bind_rows(income2019_clean, income2021_clean, income2022_clean)
 
 #Remove rows and columns not relevant to the analysis
 
