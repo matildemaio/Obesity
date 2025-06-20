@@ -3,6 +3,8 @@
 education2021 = educayion2021
 
 
+#Install packages
+
 install.packages("tidyverse")
 library(tidyverse)
 
@@ -56,15 +58,30 @@ merged_education <- bind_rows(Bachelor_2019, Bachelor_2021, Bachelor_2022)
 
 #Rename column
 
-merged_education <- merged_education %>%
+merged_education_clean <- merged_education %>%
   rename(Variable = `Label..Grouping.`)
 
-#Match the structure of the income data for consistent analysis
+#Match the structure of the education data for consistent analysis
+#Change states names
 
-merged_education <- merged_education %>%
+merged_education_clean <- merged_education_clean %>%
   select(-Variable, -1) %>%
   pivot_longer(-year, names_to = "GeoName", values_to = "education")%>%
   mutate(GeoName = gsub("\\.\\.Total\\.\\.Estimate", "", GeoName))
+  
+# Remove dots in states names
+  merged_education_clean <- merged_education_clean %>%
+  mutate(GeoName = gsub("\\.", " ", GeoName))
+  
+#Check state names
+
+unique(merged_education_clean$GeoName)
+
+#Convert column education to numeric
+merged_education_clean <- merged_education_clean %>%
+  mutate(education = as.numeric(gsub(",", "", education)))
+
+
 
 ##Income data
 
@@ -83,249 +100,176 @@ income2022 <- income2022 %>%
 
 merged_income <- bind_rows(income2019, income2021, income2022)
 
-#Remove rows not relevant to the analysis
+#Remove rows and columns not relevant to the analysis
 
-merged_income <- merged_income %>%
-  filter(!is.na(as.numeric(GeoFips)))%>%
-  filter(GeoName != "United States")
+merged_income_clean <- merged_income %>%
+  filter(GeoName != "United States")%>%
+  select(year, income, GeoName)%>%
+  filter(!is.na(income))
+
 
 
 ###Creation of new variables###
 
 #Calculation of average income per state
 
-average_income <- merged_income %>%
+average_income <- merged_income_clean %>%
   group_by(GeoName) %>%
   summarise(avg_income = mean(income, na.rm = TRUE))%>%
   arrange(desc(avg_income))
   
 #Calculation of average education per state and remove commas and convert to numeric
 
-average_education <- merged_education %>%
+average_education <- merged_education_clean %>%
   mutate(education = as.numeric(gsub(",", "", education))) %>%
   group_by(GeoName) %>%
   summarise(avg_education = mean(education, na.rm = TRUE))%>%
   arrange(desc(avg_education))
 
 
+###Visualization###
 
-#I still need to do this part
-ggplot(average_income, aes(x = reorder(GeoName, -avg_income), y = avg_income / 1e6)) +
-  geom_point() +
-  labs(
-    title = "Average Income by State (in Millions)",
-    x = "State",
-    y = "Average Income (Millions USD)"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+##Visualize spatial variation
 
-
-
-library(ggplot2)
-
-ggplot(average_education_clean, aes(x = reorder(GeoName, -avg_education), y = avg_education)) +
-  geom_bar(stat = "identity", fill = "steelblue") +
-  labs(
-    title = "Average Number with Bachelor's Degree or Higher by State",
-    x = "State",
-    y = "Average Education Count"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
+#Install packages
 
 library(ggplot2)
 library(dplyr)
 library(maps)
-# Get map data for U.S. states
+
+#Education data
+# Map data for U.S. states
+
 us_states <- map_data("state")
 
-# Prepare education data: lowercase state names to match map data
-education_map <- average_education_clean %>%
+#Change education data to match map data
+
+education_map <- average_education %>%
   mutate(region = tolower(GeoName))
-map_edu <- us_states %>%
+
+#Merge the education data to the US map data
+
+education_map <- us_states %>%
   left_join(education_map, by = "region")
-ggplot(map_edu, aes(x = long, y = lat, group = group, fill = avg_education)) +
+
+# Plot average education per state with color scale in millions
+
+ggplot(education_map, aes(x = long, y = lat, group = group, fill = avg_education)) +
   geom_polygon(color = "white") +
   coord_fixed(1.3) +
   labs(
-    title = "Average Bachelor's Degree or Higher by State",
-    fill = "Avg. Education"
+    title = "Average Number of People with Higher Education by State",
+    fill = "Average Education (Millions)"
   ) +
-  scale_fill_viridis_c(option = "plasma", direction = -1) +
+  scale_fill_viridis_c(option = "plasma", direction = -1, labels = scales::label_number(suffix = "M", accuracy = 1)) +
   theme_void()
 
-unique(average_education_clean$GeoName)
+
+#Income data
 
 
-
-
-average_income_states <- average_income %>%
-  filter(GeoName != "United States") %>%
-  mutate(region = tolower(GeoName))
-library(ggplot2)
-library(maps)
+# Map data for U.S. states
 
 us_states <- map_data("state")
-map_income <- us_states %>%
-  left_join(average_income_states, by = "region")
-ggplot(map_income, aes(x = long, y = lat, group = group, fill = avg_income)) +
+
+#Change education data to match map data
+
+income_map <- average_income %>%
+  mutate(region = tolower(GeoName))
+
+#Merge the education data to the US map data
+
+income_map <- us_states %>%
+  left_join(income_map, by = "region")
+
+# Plot average income per state with color scale in millions
+
+ggplot(income_map, aes(x = long, y = lat, group = group, fill = avg_income)) +
   geom_polygon(color = "white") +
   coord_fixed(1.3) +
   labs(
-    title = "Average Income by State",
-    fill = "Avg. Income"
+    title = "Average Annual Income by State",
+    fill = "Average Income (Millions)"
   ) +
-  scale_fill_viridis_c(option = "cividis", direction = -1) +
+  scale_fill_viridis_c(option = "plasma", direction = -1, labels = scales::label_number(suffix = "M", accuracy = 1)) +
   theme_void()
 
 
+##Visualize Sub-population variation
 
-#NEED TO REMOVE THIS 
-# Filter for California and Vermont
-income_subset <- average_income %>%
-  filter(GeoName %in% c("California", "Vermont")) %>%
-  mutate(Type = "Income", Value = avg_income / 1e6) %>%
-  select(GeoName, Type, Value)
+#Merge average education and average income
 
-education_subset <- average_education_clean %>%
-  filter(GeoName %in% c("California", "Vermont")) %>%
-  mutate(Type = "Education", Value = avg_education / 1e6) %>%
-  select(GeoName, Type, Value)
+merged_averages <- average_education %>%
+  inner_join(average_income, by = "GeoName")
 
-# Combine both
-combined_plot_data <- bind_rows(income_subset, education_subset)
+#Select 10 states with highest average education
 
-ggplot(combined_plot_data, aes(x = GeoName, y = Value, fill = Type)) +
-  geom_col(position = "dodge") +
-  labs(
-    title = "Average Income and Education for California and Vermont",
-    x = "State",
-    y = "Millions (USD / People)",
-    fill = "Metric"
-  ) +
-  theme_minimal()
+top10_education <- merged_averages %>%
+  arrange(desc(avg_education)) %>%
+  slice_head(n = 10)%>%
+  mutate(group = "Top 10 Educated")
 
-# Step 1: Filter and summarize income
-income_ca <- combined_income %>%
-  filter(GeoName == "California") %>%
-  group_by(year) %>%
-  summarise(Value = mean(income, na.rm = TRUE)) %>%
-  mutate(Type = "Income")
+# Select 10 states with lowest average education
 
-# Step 2: Filter and summarize education (corrected)
-education_ca <- education_long %>%
-  filter(GeoName == "California..Total..Estimate") %>%
-  group_by(year) %>%
-  summarise(Value = mean(Count, na.rm = TRUE)) %>%
-  mutate(Type = "Education")
+bottom10_education <- merged_averages %>%
+  arrange(avg_education) %>%
+  slice_head(n = 10) %>%
+  mutate(group = "Bottom 10 Educated")
 
-# Step 3: Combine and plot
-line_data <- bind_rows(income_ca, education_ca)
-
-ggplot(line_data, aes(x = year, y = Value, color = Type)) +
-  geom_line(size = 1.2) +
-  geom_point(size = 2) +
-  geom_vline(xintercept = 2020, linetype = "dashed", color = "red") +
-  labs(
-    title = "Income and Education Trend in California",
-    x = "Year",
-    y = "Value (USD / People)",
-    color = "Metric"
-  ) +
-  scale_x_continuous(breaks = c(2019, 2020, 2021, 2022)) +
-  theme_minimal()
-
-
-
-
-library(tidyverse)
-
-# Filter top 10 highest and lowest income states (excluding United States)
-top10_income <- average_income %>%
-  filter(GeoName != "United States") %>%
-  arrange(desc(avg_income)) %>%
-  slice(1:10)
-
-bottom10_income <- average_income %>%
-  filter(GeoName != "United States") %>%
-  arrange(avg_income) %>%
-  slice(1:10)
-
-# Combine both sets of states
-selected_states <- bind_rows(top10_income, bottom10_income)
-
-# Join with education data
-comparison_data <- selected_states %>%
-  left_join(average_education_clean, by = "GeoName") %>%
-  select(GeoName, avg_income, avg_education) %>%
+# Merge groups and adjust scale to millions
+combined_groups <- bind_rows(top10_education, bottom10_education)%>%
   mutate(
-    avg_income = avg_income / 1e6,
-    avg_education = avg_education / 1e6
-  )
+  avg_education = avg_education / 1e6,
+  avg_income = avg_income / 1e6
+)
 
-# Reshape for plotting
-comparison_long <- comparison_data %>%
-  pivot_longer(cols = c(avg_income, avg_education), 
-               names_to = "Metric", 
-               values_to = "Value") %>%
-  mutate(Metric = recode(Metric, 
-                         avg_income = "Income", 
-                         avg_education = "Education"))
+#Prepare data before plotting 
 
+plot_sub_pop <- combined_groups %>%
+  select(GeoName, avg_education, avg_income, group) %>%
+  pivot_longer(cols = c(avg_education, avg_income),
+               names_to = "Metric", values_to = "Value")
+plot_sub_pop <- plot_sub_pop %>%
+  mutate(Metric = recode(Metric,
+                         avg_education = "Average Education",
+                         avg_income = "Average Income"))
 # Plot
-ggplot(comparison_long, aes(x = reorder(GeoName, -Value), y = Value, fill = Metric)) +
-  geom_col(position = "dodge") +
-  labs(
-    title = "Top & Bottom 10 States: Income vs Education",
-    x = "State",
-    y = "Millions (USD / People)",
-    fill = "Metric"
-  ) +
+ggplot(plot_sub_pop, aes(x = reorder(GeoName, -Value), y = Value, fill = Metric)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_wrap(~ group, scales = "free_x") +
+  labs(title = "Comparison of Income and Education Levels",
+       x = "State", y = "Value (Millions)", fill = "Metric") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
-library(tidyverse)
+##Visualize Temporal Variation
 
-# Step 1: Get top and bottom 10 income states
-top10_income <- average_income %>%
-  filter(GeoName != "United States") %>%
-  arrange(desc(avg_income)) %>%
-  slice(1:10)
+# Merge education data and income data
 
-bottom10_income <- average_income %>%
-  filter(GeoName != "United States") %>%
-  arrange(avg_income) %>%
-  slice(1:10)
+merged_data <-merged_education_clean%>%
+  left_join(merged_income_clean, by = c("GeoName", "year"))
 
-# Step 2: Combine them
-selected_states <- bind_rows(top10_income, bottom10_income)
+#Select West Virginia because it is the state with the highest obesity rate
 
-# Step 3: Join with education data
-comparison_data <- selected_states %>%
-  left_join(average_education_clean, by = "GeoName") %>%
-  select(GeoName, avg_income, avg_education) %>%
-  mutate(
-    avg_income = avg_income / 1e6,
-    avg_education = avg_education / 1e6
-  )
+west_virginia_data <- merged_data %>%
+  filter(GeoName == "West Virginia") %>%
+  select(year, income, education)
 
-# Step 4: Convert to long format for boxplot
-comparison_long <- comparison_data %>%
-  pivot_longer(cols = c(avg_income, avg_education),
-               names_to = "Metric",
-               values_to = "Value") %>%
-  mutate(Metric = recode(Metric,
-                         avg_income = "Income",
-                         avg_education = "Education"))
+# Prepare date before plotting
+plot_temporal <- west_virginia_data %>%
+  pivot_longer(cols = c(income, education),
+               names_to = "Metric", values_to = "value")
 
-# Step 5: Plot box plot
-ggplot(comparison_long, aes(x = Metric, y = Value, fill = Metric)) +
-  geom_boxplot() +
+# Plot
+ggplot(plot_temporal, aes(x = year, y = value, color = Metric)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  geom_vline(xintercept = 2020, linetype = "dashed", color = "red") +
   labs(
-    title = "Distribution of Income and Education\nTop & Bottom 10 States by Income",
-    x = "Metric",
-    y = "Millions (USD / People)")
-  theme_minimal()
+    title = "Income and Education Over Time in West Virginia",
+    x = "Year",
+    y = "Value",
+    color = "Metric"
+  ) +
+  theme_minimal()
