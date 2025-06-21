@@ -10,6 +10,8 @@ library(tidyverse)
 library(dplyr)
 library(purrr)
 library(tidyr)
+library(ggplot2)
+library(maps)
 
 
 ###Data cleaning####
@@ -117,6 +119,18 @@ average_income <- merged_income_clean %>%
   group_by(GeoName) %>%
   summarise(avg_income = mean(income, na.rm = TRUE))%>%
   arrange(desc(avg_income))
+
+#Plot figure
+
+ggplot(average_income, aes(x = reorder(GeoName, -avg_income), y = avg_income/1e3)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(
+    title = "Average Income by State",
+    x = "State",
+    y = "Average Income (in Thousands)"
+  ) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
   
 #Calculation of average education per state and remove commas and convert to numeric
 
@@ -126,6 +140,17 @@ average_education <- merged_education_clean %>%
   summarise(avg_education = mean(education, na.rm = TRUE))%>%
   arrange(desc(avg_education))
 
+#Plot figure
+
+ggplot(average_education, aes(x = reorder(GeoName, -avg_education), y = avg_education/1e3)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(
+    title = "Average Number of People with Higher Education by State",
+    x = "State",
+    y = "Average People (in Thousands)"
+  ) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
 
 ###Visualization###
 
