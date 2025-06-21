@@ -197,52 +197,40 @@ ggplot(income_map, aes(x = long, y = lat, group = group, fill = avg_income)) +
 
 ##Visualize Sub-population variation
 
-#Merge average education and average income
-
-merged_averages <- average_education %>%
-  inner_join(average_income, by = "GeoName")
-
-#Select 10 states with highest average education
-
-top10_education <- merged_averages %>%
-  arrange(desc(avg_education)) %>%
-  slice_head(n = 10)%>%
-  mutate(group = "Top 10 Educated")
-
-# Select 10 states with lowest average education
-
-bottom10_education <- merged_averages %>%
-  arrange(avg_education) %>%
-  slice_head(n = 10) %>%
-  mutate(group = "Bottom 10 Educated")
-
-# Merge groups and adjust scale to millions
-combined_groups <- bind_rows(top10_education, bottom10_education)%>%
-  mutate(
-  avg_education = avg_education / 1e6,
-  avg_income = avg_income / 1e6
+# Create a data frame that maps states to regions
+state_regions <- data.frame(
+  GeoName = c(
+    "Connecticut", "Maine", "Massachusetts", "New Hampshire", "Rhode Island", "Vermont",
+    "New Jersey", "New York", "Pennsylvania",
+    "Illinois", "Indiana", "Michigan", "Ohio", "Wisconsin",
+    "Iowa", "Kansas", "Minnesota", "Missouri", "Nebraska", "North Dakota", "South Dakota",
+    "Delaware", "Florida", "Georgia", "Maryland", "North Carolina", "South Carolina", 
+    "Virginia", "Washington D.C.", "West Virginia", "Alabama", "Kentucky", "Mississippi", 
+    "Tennessee", "Arkansas", "Louisiana", "Oklahoma", "Texas",
+    "Arizona", "Colorado", "Idaho", "Montana", "Nevada", "New Mexico", 
+    "Utah", "Wyoming", "Alaska", "California", "Hawaii", "Oregon", "Washington"
+  ),
+  region = c(
+    rep("Northeast", 9),
+    rep("Midwest", 12),
+    rep("South", 17),
+    rep("West", 13)
+  )
 )
 
-#Prepare data before plotting 
+#Merge average education and regions
+education_states <- average_education %>%
+  inner_join(state_regions, by = "GeoName")
 
-plot_sub_pop <- combined_groups %>%
-  select(GeoName, avg_education, avg_income, group) %>%
-  pivot_longer(cols = c(avg_education, avg_income),
-               names_to = "Metric", values_to = "Value")
-plot_sub_pop <- plot_sub_pop %>%
-  mutate(Metric = recode(Metric,
-                         avg_education = "Average Education",
-                         avg_income = "Average Income"))
-# Plot
-ggplot(plot_sub_pop, aes(x = reorder(GeoName, -Value), y = Value, fill = Metric)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  facet_wrap(~ group, scales = "free_x") +
-  labs(title = "Comparison of Income and Education Levels",
-       x = "State", y = "Value (Millions)", fill = "Metric") +
+#Plot
+ggplot(education_states, aes(x = region, y = avg_education / 1e3, fill = region)) +
+  geom_boxplot() +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
+  labs(
+    title = "Education Distribution by Region",
+    x = "Region",
+    y = "People (in Thousands)"
+  )
 ##Visualize Temporal Variation
 
 # Merge education data and income data
