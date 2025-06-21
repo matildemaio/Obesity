@@ -9,6 +9,7 @@ library(dplyr)
 library(purrr)
 library(tidyr)
 library(ggplot2)
+install.packages("maps")
 library(maps)
 
 
