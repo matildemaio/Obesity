@@ -1,17 +1,30 @@
-#Correction of name
-education2021 = educayion2021
 
 
 #Install packages
 
 install.packages("tidyverse")
 library(tidyverse)
-
+library(readr)
 library(dplyr)
 library(purrr)
 library(tidyr)
 library(ggplot2)
 library(maps)
+
+
+##INIT##
+
+
+##Load data
+
+education2019 <- read_csv("education2019.csv")
+education2021 <- read_csv("educayion2021.csv")
+education2022 <- read_csv("educayion2022.csv")
+income2019 <- read_csv("income2019.csv")
+income2021 <- read_csv("income2021.csv")
+income2022 <- read_csv("income2022.csv")
+
+
 
 
 ###Data cleaning####
