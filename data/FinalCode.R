@@ -19,7 +19,7 @@ library(maps)
 
 education2019 <- read_csv("education2019.csv")
 education2021 <- read_csv("educayion2021.csv")
-education2022 <- read_csv("educayion2022.csv")
+education2022 <- read_csv("education2022.csv")
 income2019 <- read_csv("income2019.csv")
 income2021 <- read_csv("income2021.csv")
 income2022 <- read_csv("income2022.csv")
