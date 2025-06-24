@@ -19,6 +19,11 @@ library(maps)
 #Setting The Working Directory
 setwd("~/Documents/GitHub/Obesity/data")
 
+##Short summary of datasets
+
+head(income2019)
+head(education2019)
+
 
 ##Load data
 
@@ -174,12 +179,6 @@ ggplot(average_education, aes(x = reorder(GeoName, -avg_education), y = avg_educ
 
 ##Visualize spatial variation
 
-#Install packages
-
-library(ggplot2)
-library(dplyr)
-library(maps)
-
 #Education data
 # Map data for U.S. states
 
@@ -240,7 +239,7 @@ ggplot(income_map, aes(x = long, y = lat, group = group, fill = avg_income)) +
 
 ##Visualize Sub-population variation
 
-# Create a data frame that maps states to regions
+# Create a data frame that maps states to 4 regions
 state_regions <- data.frame(
   GeoName = c(
     "Connecticut", "Maine", "Massachusetts", "New Hampshire", "Rhode Island", "Vermont",
