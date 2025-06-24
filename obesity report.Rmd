@@ -1,0 +1,38 @@
+---
+title: "obesity report"
+output: html_document
+---
+
+# Title Page
+
+Obesity
+
+26-05-2025
+
+Group: Tutorial 4
+
+Tutorial lecturer: Chantal
+
+Students: Renata Mutesah (2797482), Jada van Heyningen (2801118), Matilde Maio (2861974), Eren Murtezaoglu (2819813)
+
+## Part 1: Identifying Our Social Problem
+
+Obesity is a growing social problem with significant public health, economic, and societal implications. With many factors impacting the rate of obesity. Some including poor diets, mental health issues, low income, and lack of education. In the united states of America, more than 100 millions adults (CDC, 2024) have obesity, causing the USA to rank in the top 10 (Ranking (% obesity by country), n.d.) countries with the highest obesity percentage. It contributes to rising rates of chronic diseases like diabetes, heart disease, and certain cancers, placing immense pressure on healthcare systems. In many communities, limited access to healthy food and safe recreational spaces further deepens health inequalities.\
+Exploring the correlation between education, income, and obesity is highly relevant because both factors significantly influence health behaviors and access to resources. Individuals with lower levels of education may have limited knowledge about nutrition and the long-term consequences of poor dietary habits. Similarly, those with lower income often face barriers such as food insecurity, reliance on cheap, calorie-dense foods, and reduced access to recreational facilities or healthcare. Especially since we live in a world where eating healthy costs twice as much as eating junk food (Barraclough, 2025) It is assumed that these socioeconomic disadvantages contribute to higher obesity rates in disadvantaged populations- we were interested to explore these rates, specifically in American states.
+
+ ## Part 2: Data Sourcing
+load in data: 
+```{r}
+income2019 <- read_csv("data/income2019.csv")
+income2021 <- read_csv("data/income2021.csv") 
+income2022 <- read_csv("data/income2022.csv")
+education2019 <- read_csv("data/education2019.csv") 
+educayion2021 <- read_csv("data/educayion2021.csv") 
+education2022 <- read_csv("data/education2022.csv") 
+```
+
+For this report we made use of publicly available datasets to explore the relationship between the variables education and income across the United States from 2019 to 2022.
+
+The education datasets were obtained from the U.S. Census Bureau’s American Community Survey (ACS). The datasets report educational attainment segmented by state, age group and gender. The ACS is a large scaled survey that  is conducted annually throughout 3.5 million households across the U.S. Data is collected through different methods, including postal questionnaires, online responses and phone interviews. The data specifically focuses on individuals aged 18 to 24.
+
+The income datasets were sourced from the U.S. Bureau of Economic Analysis (BEA). These datasets report the total personal income by state, in millions of U.S. dollars. Unlike the ACS, BEA’s data is collected through a combination of administrative rather than surveys. Data is obtained through sources like tax return data from the IRS, as well as employment data from state unemployment insurance programs and federal benefits data. By compiling and modelling this data the BEA produces annual estimates of total personal income for each state. Reflecting earnings from wages, business income, government benefits and investment income.\
