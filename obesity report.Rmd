@@ -1,38 +1,511 @@
 ---
-title: "obesity report"
-output: html_document
----
+title: "Obesity Report"
 
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+# Set-up your environment
+```{r package_install, include=FALSE}
+install.packages("tidyverse")
+
+install.packages("maps")
+
+```
+
+```{r packages, include=FALSE}
+library(tidyverse)
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(purrr)
+library(tidyr)
+library(ggplot2)
+library(maps)
+```
 # Title Page
 
 Obesity
-
-26-05-2025
 
 Group: Tutorial 4
 
 Tutorial lecturer: Chantal
 
-Students: Renata Mutesah (2797482), Jada van Heyningen (2801118), Matilde Maio (2861974), Eren Murtezaoglu (2819813)
+Lecturer: Jack Frederick Fitzgerald
 
-## Part 1: Identifying Our Social Problem
+Eren Murtezaoglu (2819813)
+Renata Mutesah (2797482)
+Jada van Heyningen (2801118)
+Matilde Maio (2861974)
+Demir Günbahar (2801828)
+Duru Ozkan (2757656)
+Pratyush Sebastian (2789372)
+
+
+# Part 1 - Identify a Social Problem
 
 Obesity is a growing social problem with significant public health, economic, and societal implications. With many factors impacting the rate of obesity. Some including poor diets, mental health issues, low income, and lack of education. In the united states of America, more than 100 millions adults (CDC, 2024) have obesity, causing the USA to rank in the top 10 (Ranking (% obesity by country), n.d.) countries with the highest obesity percentage. It contributes to rising rates of chronic diseases like diabetes, heart disease, and certain cancers, placing immense pressure on healthcare systems. In many communities, limited access to healthy food and safe recreational spaces further deepens health inequalities.\
 Exploring the correlation between education, income, and obesity is highly relevant because both factors significantly influence health behaviors and access to resources. Individuals with lower levels of education may have limited knowledge about nutrition and the long-term consequences of poor dietary habits. Similarly, those with lower income often face barriers such as food insecurity, reliance on cheap, calorie-dense foods, and reduced access to recreational facilities or healthcare. Especially since we live in a world where eating healthy costs twice as much as eating junk food (Barraclough, 2025) It is assumed that these socioeconomic disadvantages contribute to higher obesity rates in disadvantaged populations- we were interested to explore these rates, specifically in American states.
 
- ## Part 2: Data Sourcing
-load in data: 
-```{r}
+# Part 2 - Data Sourcing
+
+## 2.1 Load in the data
+
+```{r loading_data, include=FALSE}
+library(tidyverse)
 income2019 <- read_csv("data/income2019.csv")
 income2021 <- read_csv("data/income2021.csv") 
 income2022 <- read_csv("data/income2022.csv")
 education2019 <- read_csv("data/education2019.csv") 
-educayion2021 <- read_csv("data/educayion2021.csv") 
+education2021 <- read_csv("data/educayion2021.csv") 
 education2022 <- read_csv("data/education2022.csv") 
 ```
 
+## 2.2 Provide a short summary of the dataset(s)
+
+```{r}
+head(income2019)
+```
+
+
+```{r}
+head(education2019)
+```
+
 For this report we made use of publicly available datasets to explore the relationship between the variables education and income across the United States from 2019 to 2022.
+The education datasets were obtained from the U.S. Census Bureau’s American Community Survey (ACS). The datasets report educational attainment segmented by state, age group, gender, ethnicity, poverty rate and median earnings. The ACS is a large-scale survey that is conducted annually throughout 3.5 million households across the U.S. Data is collected through different methods, including postal questionnaires, online responses and phone interviews. Although the dataset includes a wide range of age groups, we chose to focus specifically on individuals aged 19 to 24, which is further explained in section 3.1.
+The income datasets were sourced from the U.S. Bureau of Economic Analysis (BEA). These datasets report the total personal income by state, in millions of U.S. dollars. Unlike the ACS, BEA’s data is collected through a combination of administrative rather than surveys. Data is obtained through sources like tax return data from the IRS, as well as employment data from state unemployment insurance programs and federal benefits data. By compiling and modelling this data the BEA produces annual estimates of total personal income for each state. Reflecting earnings from wages, business income, government benefits and investment income.
 
-The education datasets were obtained from the U.S. Census Bureau’s American Community Survey (ACS). The datasets report educational attainment segmented by state, age group and gender. The ACS is a large scaled survey that  is conducted annually throughout 3.5 million households across the U.S. Data is collected through different methods, including postal questionnaires, online responses and phone interviews. The data specifically focuses on individuals aged 18 to 24.
 
-The income datasets were sourced from the U.S. Bureau of Economic Analysis (BEA). These datasets report the total personal income by state, in millions of U.S. dollars. Unlike the ACS, BEA’s data is collected through a combination of administrative rather than surveys. Data is obtained through sources like tax return data from the IRS, as well as employment data from state unemployment insurance programs and federal benefits data. By compiling and modelling this data the BEA produces annual estimates of total personal income for each state. Reflecting earnings from wages, business income, government benefits and investment income.\
+## 2.3 Describe the type of variables included
+
+- `year`: the calendar year for each data point, indicating when the income and education values were recorded (2019, 2021, or 2022). It is neither a health nor an SES metric.
+- `GeoName`: the full name of the U.S. state for each observation, used to merge, label, and map data; not a health or SES metric.
+- `education`: the raw count of 18–24 year-old holding a bachelor’s degree in a given state and year, extracted from the ACS “total estimate” column; an SES indicator.
+- `income`: the total personal income for each state and year, measured in millions of U.S. dollars and derived from BEA administrative records; an SES indicator.
+- `avg_education`: the average number of bachelor’s-degree holders per state, calculated as the mean of the three annual counts (2019, 2021, 2022); an SES indicator.
+- `avg_income`: the average total personal income per state, calculated as the mean of the three annual income figures (in millions of USD); an SES indicator.
+
+
+# Part 3 - Quantifying
+
+## 3.1 Data cleaning
+
+We selected column 2 (GeoName) and every 12th column from 3 to 604 to capture the “Total Estimate” values for each state in each year.
+```{r include=FALSE}
+#Selection of columns with total estimate for each year
+
+col_numbers<- c(2,seq(3,604, by=12))
+education2019_clean<-education2019[,col_numbers]
+
+col_numbers<- c(2,seq(3,604, by=12))
+education2021_clean<-education2021[,col_numbers]
+
+col_numbers<- c(2,seq(3,604, by=12))
+education2022_clean<-education2022[,col_numbers]
+```
+
+
+We appended a year column to each dataframe to label observations by year.
+```{r include=FALSE}
+# Add column year
+
+education2019_clean <- education2019_clean %>%
+  mutate(year = 2019)
+
+education2021_clean <- education2021_clean %>%
+  mutate(year = 2021)
+
+education2022_clean <- education2022_clean %>%
+  mutate(year = 2022)
+```
+
+
+
+We extracted the 6th row, which corresponds to counts of 18–24 year-olds holding a bachelor’s degree or higher.
+```{r include=FALSE}
+#Selection of Population 18-24 years with bachelor's degree or higher for each year
+
+Bachelor_2019 <- education2019_clean[6, ]
+
+Bachelor_2021 <- education2021_clean[6, ]
+
+Bachelor_2022 <- education2022_clean[6, ]
+```
+
+We combined the three bachelor datasets into one dataframe.
+```{r include=FALSE}
+#Merge education data
+
+merged_education <- bind_rows(Bachelor_2019, Bachelor_2021, Bachelor_2022)
+```
+
+We renamed the grouping column to Variable for clarity.
+```{r include=FALSE}
+#Rename column
+
+merged_education_clean <- merged_education %>%
+  rename(Variable = `Label..Grouping.`)
+```
+
+We removed unneeded columns, pivoted to long format, and cleaned up the state names.
+```{r include=FALSE}
+#Match the structure of the education data for consistent analysis
+#Change states names
+
+merged_education_clean <- merged_education_clean %>%
+  select(-Variable, -1) %>%
+  pivot_longer(-year, names_to = "GeoName", values_to = "education")%>%
+  mutate(GeoName = gsub("\\.\\.Total\\.\\.Estimate", "", GeoName))
+```
+
+We replaced all periods with spaces in GeoName to get proper state names.
+```{r include=FALSE}
+# Remove dots in states names
+merged_education_clean <- merged_education_clean %>%
+  mutate(GeoName = gsub("\\.", " ", GeoName))
+```
+
+We inspected the unique values of GeoName to ensure formatting was correct.
+```{r include=FALSE}
+#Check state names
+
+unique(merged_education_clean$GeoName)
+```
+
+We removed commas and converted the education column from character to numeric.
+```{r include=FALSE}
+# Remove dots in states names
+  merged_education_clean <- merged_education_clean %>%
+  mutate(GeoName = gsub("\\.", " ", GeoName))
+
+#Convert column education to numeric
+merged_education_clean <- merged_education_clean %>%
+  mutate(education = as.numeric(gsub(",", "", education)))
+```
+
+For each income dataset (2019, 2021, 2022), we added a new year column to indicate the year the data represents. We also renamed the income column (e.g., X2019) to a standard name income so that we can later combine them easily.
+```{r include=FALSE}
+#Add column year and rename column
+
+income2019_clean <- income2019 %>%
+  mutate(year = 2019)%>%
+  rename(income = X2019)
+
+income2021_clean <- income2021 %>%
+  mutate(year = 2021)%>%
+  rename(income = X2021)
+
+income2022_clean <- income2022 %>%
+  mutate(year = 2022)%>%
+  rename(income = X2022)
+```
+
+We merged the three cleaned yearly datasets into a single dataframe using bind_rows(). This created one long-format table with income and year labels together.
+```{r include=FALSE}
+#Merge income data
+
+merged_income <- bind_rows(income2019_clean, income2021_clean, income2022_clean)
+```
+
+We filtered out the row corresponding to "United States" (a national-level aggregate not needed for state-level analysis). Then, we kept only the year, income, and GeoName columns. Finally, we removed any rows with missing (NA) income values to ensure clean data for further analysis.
+```{r include=FALSE}
+#Remove rows and columns not relevant to the analysis
+
+merged_income_clean <- merged_income %>%
+  filter(GeoName != "United States")%>%
+  select(year, income, GeoName)%>%
+  filter(!is.na(income))
+```
+
+
+## 3.2 Generate necessary variables
+
+
+Variable 1:Average income
+
+```{r gen_var1, include=FALSE}
+###Creation of new variables###
+
+#Calculation of average income per state
+
+average_income <- merged_income_clean %>%
+  group_by(GeoName) %>%
+  summarise(avg_income = mean(income, na.rm = TRUE))%>%
+  arrange(desc(avg_income))
+
+```
+
+Here, we are forming a bar chart of average education by state. We ordered it from highest to lowest
+```{r figure income, echo=FALSE}
+#Plot figure
+
+ggplot(average_income, aes(x = reorder(GeoName, -avg_income), y = avg_income/1e3)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(
+    title = "Average Income by State",
+    x = "State",
+    y = "Average Income (in Thousands)"
+  ) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+```
+
+Variable 2:Average education 
+
+Here, we cleaned the data first, then we grouped it by states. We calculate the average education.
+
+```{r gen_var2, include=FALSE}
+#Calculation of average education per state and remove commas and convert to numeric
+
+average_education <- merged_education_clean %>%
+  mutate(education = as.numeric(gsub(",", "", education))) %>%
+  group_by(GeoName) %>%
+  summarise(avg_education = mean(education, na.rm = TRUE))%>%
+  arrange(desc(avg_education))
+
+```
+
+We are creating a plot here. Sorting the states from highest to lowest average education.
+
+```{r figure education}
+#Plot figure
+
+ggplot(average_education, aes(x = reorder(GeoName, -avg_education), y = avg_education/1e3)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  theme_minimal() +
+  labs(
+    title = "Average Number of People with Higher Education by State",
+    x = "State",
+    y = "Average People (in Thousands)"
+  ) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+```
+We created a new variable, average income and average education per state, to gain a better understanding of income and education trends across the United States during the period analysed. Creating an average per state helps to smooth out year-to-year fluctuations and provides a more representative measure of income and education levels. 
+
+## 3.3 Visualize temporal variation
+
+```{r preparation of data 1, include=FALSE}
+##Visualize Temporal Variation
+
+# Merge education data and income data
+
+merged_data <-merged_education_clean%>%
+  left_join(merged_income_clean, by = c("GeoName", "year"))
+
+#Select West Virginia because it is the state with the highest obesity rate
+
+west_virginia_data <- merged_data %>%
+  filter(GeoName == "West Virginia") %>%
+  select(year, income, education)
+
+# Prepare date before plotting
+plot_temporal <- west_virginia_data %>%
+  pivot_longer(cols = c(income, education),
+               names_to = "Metric", values_to = "value")
+
+```
+
+```{r, Plot 1}
+# Plot
+ggplot(plot_temporal, aes(x = year, y = value, color = Metric)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  geom_vline(xintercept = 2020, linetype = "dashed", color = "red") +
+  labs(
+    title = "Income and Education Over Time in West Virginia",
+    x = "Year",
+    y = "Value",
+    color = "Metric"
+  ) +
+  theme_minimal()
+
+```
+In this plot we try to show the relationship and the linkage between education, and income throughout 2019 to 2022. We selected West Virginia because it is the state with the highest obesity rate. The plot also tries to show if covid(2020) had a causal relationship with the increase in education and income. We did not use the 2020 data since during the covid there was no data collected from our source.
+
+## 3.4 Visualize spatial variation
+
+```{r preparation of education data 2, include=FALSE}
+###Visualization###
+
+##Visualize spatial variation
+
+#Education data
+# Map data for U.S. states
+
+us_states <- map_data("state")
+
+#Change education data to match map data
+
+education_map <- average_education %>%
+  mutate(region = tolower(GeoName))
+
+#Merge the education data to the US map data
+
+education_map <- us_states %>%
+  left_join(education_map, by = "region")
+
+```
+
+```{r visualise_map 1}
+# Plot average education per state with color scale in millions
+
+ggplot(education_map, aes(x = long, y = lat, group = group, fill = avg_education)) +
+  geom_polygon(color = "white") +
+  coord_fixed(1.3) +
+  labs(
+    title = "Average Number of People with Higher Education by State",
+    fill = "Average Education (Millions)"
+  ) +
+  scale_fill_viridis_c(option = "plasma", direction = -1, labels = scales::label_number(suffix = "M", accuracy = 1)) +
+  theme_void()
+```
+
+```{r preparation of income data 2, include=FALSE}
+###Visualization###
+
+##Visualize spatial variation
+
+#Income data
+
+
+# Map data for U.S. states
+
+us_states <- map_data("state")
+
+#Change education data to match map data
+
+income_map <- average_income %>%
+  mutate(region = tolower(GeoName))
+
+#Merge the education data to the US map data
+
+income_map <- us_states %>%
+  left_join(income_map, by = "region")
+
+```
+
+```{r visualise_map 2}
+# Plot average income per state with color scale in millions
+
+ggplot(income_map, aes(x = long, y = lat, group = group, fill = avg_income)) +
+  geom_polygon(color = "white") +
+  coord_fixed(1.3) +
+  labs(
+    title = "Average Annual Income by State",
+    fill = "Average Income (Millions)"
+  ) +
+  scale_fill_viridis_c(option = "plasma", direction = -1, labels = scales::label_number(suffix = "M", accuracy = 1)) +
+  theme_void()
+```
+
+In the spatial variation we graphs, we used the map of the United States of America. There are two graphs(One showing the average education levels, the other one showing the average income levels). Darker the shade of the color of the state, higher the variable becomes. The plots above are relevant to obesity because it helps us visualize which states show low results in the indicators we chose(income and education) for obesity. 
+
+## 3.5 Visualize sub-population variation
+
+
+```{r prepare data, include=FALSE}
+##Visualize Sub-population variation
+
+# Create a data frame that maps states to 4 regions
+state_regions <- data.frame(
+  GeoName = c(
+    "Connecticut", "Maine", "Massachusetts", "New Hampshire", "Rhode Island", "Vermont",
+    "New Jersey", "New York", "Pennsylvania",
+    "Illinois", "Indiana", "Michigan", "Ohio", "Wisconsin",
+    "Iowa", "Kansas", "Minnesota", "Missouri", "Nebraska", "North Dakota", "South Dakota",
+    "Delaware", "Florida", "Georgia", "Maryland", "North Carolina", "South Carolina", 
+    "Virginia", "Washington D.C.", "West Virginia", "Alabama", "Kentucky", "Mississippi", 
+    "Tennessee", "Arkansas", "Louisiana", "Oklahoma", "Texas",
+    "Arizona", "Colorado", "Idaho", "Montana", "Nevada", "New Mexico", 
+    "Utah", "Wyoming", "Alaska", "California", "Hawaii", "Oregon", "Washington"
+  ),
+  region = c(
+    rep("Northeast", 9),
+    rep("Midwest", 12),
+    rep("South", 17),
+    rep("West", 13)
+  )
+)
+
+#Merge average education and regions
+education_states <- average_education %>%
+  inner_join(state_regions, by = "GeoName")
+
+```
+
+```{r visualise_subpopulations}
+#Plot
+ggplot(education_states, aes(x = region, y = avg_education / 1e3, fill = region)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(
+    title = "Education Distribution by Region",
+    x = "Region",
+    y = "People (in Thousands)"
+  )
+```
+
+This plot visualizes the distribution of the number of people by region who had attained a bachelor’s degree or higher. It is relevant to our research because education is one of the most important variables we are investigating in relation to obesity across the United States. By comparing regions such as the Midwest, Northeast, South, and West, we can observe how education levels changed geographically. 
+
+## 3.6 Event analysis
+
+```{r analysis}
+# Plot
+ggplot(plot_temporal, aes(x = year, y = value, color = Metric)) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  geom_vline(xintercept = 2020, linetype = "dashed", color = "red") +
+  labs(
+    title = "Income and Education Over Time in West Virginia",
+    x = "Year",
+    y = "Value",
+    color = "Metric"
+  ) +
+  theme_minimal()
+```
+
+Our analysis found a strong positive correlation between income and education across U.S. states. States with higher average income seem to generally have higher levels of education . This pattern was especially visible in both the spatial variation maps and the temporal trends following COVID-19.
+We chose the COVID-19 pandemic as our main event because it represents one of the most significant social and economic events in recent history. We examined how education and income levels changed through the years of 2019,2021, and 2022 in order to see how these indicators for obesity changed before, during, and after the pandemic crisis. When we examined these indicators, we wanted to understand how the pandemic may have contributed in terms of long-term effects to public health. 
+
+
+# Part 4 - Discussion
+
+## 4.1 Discuss your findings
+
+This study tries to show how education levels, paychecks, and obesity rates line up in every U.S. state over a span of years. Our study used data from education, and income levels(2019, 2021, and 2022) to spot shifts that appeared before and after COVID-19 stepped in. In the COVID-19 period, income and education levels were inflated which also caused the obesity levels to differentiate between states a lot more. 
+ In our research, not only did we conclude that income and education levels affect obesity levels, but we also found that income and education are also directly affected by one another. Consequently, we also should not take education levels and income levels in the states as separate entities but as one because they are so closely correlated with each other. 
+For the spatial variation visuals, the interesting fact to look at in both of these graphs is that they look very familiar in terms of the shading of the states. We can see that especially in California and some of the states in the East both become darker in their shadings in both the average income and average education maps. Hence we can understand that there is a causal link between the two of them. 
+We can also arrive at the point that the lightest shaded states in both these graphs are the states that would be having the hardest time dealing with obesity because both the indicators of obesity(income and education) are the lowest in these states. 
+When we inspect the temporal variation plot, we see that both are affected by covid hence the rapid increase in both of them. During the 2021-2022 period, the line for education becomes steeper, on the other hand, income seems to stop its rapid increase. 
+Gathering information from this graph, we can conclude that covid may have helped increase both education and income during this period. Consequently, since both income and education levels changed in this period, obesity levels would be very different compared to before. 
+The clear pattern shows that, as education and earnings climb,they follow each other very closely hence their causal relationship. When these indicators increase, obesity drops. COVID-19 widened those holes. All in all, to decrease obesity levels throughout the US, the government should focus on increasing income and education. 
+
+# Part 5 - Reproducibility
+
+## 5.1 Github repository link
+
+ https://github.com/matildemaio/Obesity 
+
+## 5.2 Reference list
+
+Barraclough, A. (2025, January 29). Healthy eating now twice as expensive as junk food, study finds. Women’s Health. 
+https://www.womenshealthmag.com/uk/food/healthy-eating/a63598807/healthy-eating-twice-as-expensive-as-junk-food-study/ 
+
+BEA. (2025, March 28). BEA Interactive Data Application. Apps.bea.gov. https://apps.bea.gov/itable/?ReqID=70&step=1&_gl=1 
+CDC. (2025, January 16). Adult Obesity Facts. Obesity. 
+https://www.cdc.gov/obesity/adult-obesity-facts/index.html#print 
+States, U. (2025). Explore Census Data. Census.gov. https://data.census.gov/table/ACSST5Y2022.S1501?q=education+by+state&t=Populations+and+People
+World Obesity. (2024). Ranking (% Obesity by country). World Obesity Federation Global Obesity Observatory. https://data.worldobesity.org/rankings/ 
+
+Side Note:
+-BEA does not conduct original surveys; they compile data from federal agencies, administrative reports, and NIPA reports from the government.
+-Data.census.gov comes from the U.S. Census Bureau’s American Community Survey (ACS)
+
+
+
+
+
