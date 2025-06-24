@@ -19,6 +19,11 @@ library(maps)
 #Setting The Working Directory
 setwd("~/Documents/GitHub/Obesity/data")
 
+##Short summary of datasets
+
+head(income2019)
+head(education2019)
+
 
 ##Load data
 
