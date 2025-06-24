@@ -1,6 +1,6 @@
 ---
-title: "Template"
-author: "Studentnames and studentnumbers here"
+title: "obesity report"
+author: "Renata Mutesah (2797482), Jada van Heyningen (2801118), Matilde Maio (2861974), Eren Murtezaoglu (2819813)"
 date: "`r Sys.Date()`"
 output: pdf_document
 ---
@@ -151,8 +151,20 @@ Here you provide a description of why the plot above is relevant to your specifi
 
 ## 5.1 Github repository link
 
-Provide the link to your PUBLIC repository here: ...
+Provide the link to your PUBLIC repository here: https://github.com/matildemaio/Obesity 
 
 ## 5.2 Reference list
 
-Use APA referencing throughout your document.
+Barraclough, A. (2025, January 29). Healthy eating now twice as expensive as junk food, study finds. Women’s Health. 
+https://www.womenshealthmag.com/uk/food/healthy-eating/a63598807/healthy-eating-twice-as-expensive-as-junk-food-study/ 
+
+BEA. (2025, March 28). BEA Interactive Data Application. Apps.bea.gov. https://apps.bea.gov/itable/?ReqID=70&step=1&_gl=1 
+CDC. (2025, January 16). Adult Obesity Facts. Obesity. 
+https://www.cdc.gov/obesity/adult-obesity-facts/index.html#print 
+States, U. (2025). Explore Census Data. Census.gov. https://data.census.gov/table/ACSST5Y2022.S1501?q=education+by+state&t=Populations+and+People
+World Obesity. (2024). Ranking (% Obesity by country). World Obesity Federation Global Obesity Observatory. https://data.worldobesity.org/rankings/ 
+
+Side Note:
+-BEA does not conduct original surveys; they compile data from federal agencies, administrative reports, and NIPA reports from the government.
+-Data.census.gov comes from the U.S. Census Bureau’s American Community Survey (ACS)
+
